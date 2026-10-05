@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>اختبر عينك كمدرب</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial,sans-serif;background:linear-gradient(135deg,#eef8ff,#f9f0fa);color:#173a73}
+.app{max-width:760px;margin:auto;min-height:100vh;padding:22px 16px}
+.card{background:#fff;border-radius:28px;padding:26px;box-shadow:0 12px 35px #173a7318;margin:12px 0}
+.hero{text-align:center;background:linear-gradient(135deg,#fff,#eef7ff)}
+.eye{font-size:58px}.badge{display:inline-block;background:#a91668;color:#fff;padding:9px 24px;border-radius:24px;font-weight:700}
+h1{font-size:34px;margin:14px 0 5px;color:#173a73}h2{font-size:25px;margin:8px 0 18px}
+.sub{color:#7d5a76;font-size:17px}
+input{width:100%;padding:16px;border:2px solid #b9d5ef;border-radius:16px;font-size:18px;text-align:right;outline:none}
+button{border:0;border-radius:16px;padding:14px 22px;font-size:18px;font-weight:700;cursor:pointer}
+.primary{background:#a91668;color:#fff}.secondary{background:#e8f2fb;color:#173a73}.share{background:#159b62;color:#fff}.whatsapp{background:#25d366;color:#fff}
+.options{display:grid;gap:12px;margin:20px 0}.option{background:#f8fbff;border:2px solid #c7ddef;color:#173a73;text-align:right}.option:hover{border-color:#a91668}
+.feedback{padding:18px;border-radius:18px;margin:16px 0;font-size:17px;line-height:1.8}.good{background:#e8f8ed;border:1px solid #8bd0a2}.bad{background:#fff0f2;border:1px solid #e5a1ad}
+.hidden{display:none}.progress{display:flex;gap:8px;margin-bottom:18px}.dot{height:9px;flex:1;border-radius:10px;background:#dbe8f3}.dot.on{background:#a91668}
+.score{font-size:64px;font-weight:800;color:#a91668}.result-name{font-size:24px;font-weight:700}.actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:22px}
+.small{font-size:14px;color:#71839c;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="app">
+<section id="start" class="card hero">
+  <div class="eye">👀</div><span class="badge">أداة تفاعلية</span>
+  <h1>اختبر عينك كمدرب</h1>
+  <div class="sub">اختبار سريع للتواصل البصري للمدرب</div>
+  <div style="margin:28px 0 12px;text-align:right;font-weight:700">اكتب اسمك</div>
+  <input id="name" placeholder="اكتب اسمك هنا..." maxlength="50">
+  <button class="primary" style="width:100%;margin-top:16px" onclick="startQuiz()">ابدأ الاختبار ▶</button>
+</section>
+
+<section id="quiz" class="card hidden">
+  <div class="progress"><i class="dot"></i><i class="dot"></i><i class="dot"></i></div>
+  <div id="qnum" style="font-weight:700"></div>
+  <h2 id="question"></h2>
+  <div id="options" class="options"></div>
+  <div id="feedback" class="feedback hidden"></div>
+  <button id="next" class="primary hidden" style="width:100%" onclick="nextQuestion()">السؤال التالي ❯</button>
+</section>
+
+<section id="result" class="card hero hidden" style="text-align:center">
+  <div style="font-size:48px">🏆</div><span class="badge">أحسنت!</span>
+  <div class="result-name" id="resultName" style="margin-top:18px"></div>
+  <div class="score" id="score"></div>
+  <h2 id="resultTitle"></h2>
+  <p id="resultText" style="line-height:1.9"></p>
+  <div class="actions">
+    <button class="share" onclick="shareResult()">📤 مشاركة النتيجة</button>
+    <button class="whatsapp" onclick="shareWhatsApp()">واتساب</button>
+    <button class="secondary" onclick="restart()">↻ إعادة الاختبار</button>
+  </div>
+  <div class="small">يمكنك مشاركة نتيجتك مباشرة من هاتفك إذا كان المتصفح يدعم المشاركة.</div>
+</section>
+</div>
+
+<script>
+const qs=[
+ {q:"مدرب أثناء الشرح ينظر للشاشة معظم الوقت ولا يوزّع نظره على المتدربين. هل التواصل البصري هنا فعّال؟",
+  opts:["نعم، التواصل البصري فعّال","لا، التواصل البصري غير فعّال"],a:1,
+  good:"صحيح! المدرب يحتاج أن يوجّه نظره للمتدربين، وليس للشاشة معظم الوقت.",
+  bad:"حاول تاني: النظر للشاشة معظم الوقت يقلل التواصل المباشر مع المتدربين."},
+ {q:"مدرب يوزّع نظره بشكل طبيعي بين أفراد المجموعة أثناء الشرح. هل هذا استخدام مناسب للتواصل البصري؟",
+  opts:["نعم، التواصل البصري فعّال","لا، التواصل البصري غير فعّال"],a:0,
+  good:"صحيح! توزيع النظر على المجموعة يساعد على الانتباه والتفاعل والشعور بالمشاركة.",
+  bad:"العكس هو الأفضل: توزيع النظر على المجموعة بشكل طبيعي هو السلوك الفعّال."},
+ {q:"أي سلوك من التالي يضعف التواصل البصري للمدرب؟",
+  opts:["توزيع النظر على المجموعة","التركيز على شخص واحد فقط","التفاعل مع المتدربين أثناء الحوار"],a:1,
+  good:"صحيح! التركيز على شخص واحد فقط يجعل باقي المتدربين يشعرون بأنهم خارج دائرة الاهتمام.",
+  bad:"راجع الفكرة الأساسية: المطلوب توزيع الانتباه والنظر على المشاركين."}
+];
+let i=0,score=0,userName="";
+function startQuiz(){
+ userName=document.getElementById("name").value.trim();
+ if(!userName){alert("من فضلك اكتب اسمك أولًا.");return}
+ i=0;score=0;document.getElementById("start").classList.add("hidden");
+ document.getElementById("result").classList.add("hidden");document.getElementById("quiz").classList.remove("hidden");render();
+}
+function render(){
+ document.querySelectorAll(".dot").forEach((d,n)=>d.classList.toggle("on",n<=i));
+ document.getElementById("qnum").textContent=`السؤال ${i+1} من ${qs.length}`;
+ document.getElementById("question").textContent=qs[i].q;
+ const box=document.getElementById("options");box.innerHTML="";
+ qs[i].opts.forEach((x,n)=>{let b=document.createElement("button");b.className="option";b.textContent=x;b.onclick=()=>answer(n,b);box.appendChild(b)});
+ document.getElementById("feedback").className="feedback hidden";document.getElementById("next").className="primary hidden";document.getElementById("next").textContent=i===qs.length-1?"عرض النتيجة 📊":"السؤال التالي ❯";
+}
+function answer(n,btn){
+ document.querySelectorAll(".option").forEach(b=>b.disabled=true);
+ const ok=n===qs[i].a;if(ok)score++;
+ const f=document.getElementById("feedback");f.textContent=ok?qs[i].good:qs[i].bad;f.className="feedback "+(ok?"good":"bad");
+ document.getElementById("next").classList.remove("hidden");
+}
+function nextQuestion(){if(i<qs.length-1){i++;render()}else showResult()}
+function showResult(){
+ document.getElementById("quiz").classList.add("hidden");document.getElementById("result").classList.remove("hidden");
+ document.getElementById("resultName").textContent=userName;
+ document.getElementById("score").textContent=`${score} / ${qs.length}`;
+ let t=score===3?"ممتاز! 👏":score===2?"جيد جدًا! 👍":"بداية جيدة 💡";
+ let tx=score===3?"لديك فهم جيد لمهارة التواصل البصري للمدرب.":score===2?"فهمك جيد، ومع قليل من المراجعة هتقدر تطبق المهارة بشكل أفضل.":"راجع الأخطاء الشائعة وطريقة استخدام التواصل البصري ثم جرّب الاختبار مرة أخرى.";
+ document.getElementById("resultTitle").textContent=t;document.getElementById("resultText").textContent=tx;
+}
+function shareText(){return `👀 اختبرت عيني كمدرب!\nالاسم: ${userName}\nالنتيجة: ${score} من ${qs.length}\nاختبار التواصل البصري للمدرب`;}
+async function shareResult(){
+ if(navigator.share){try{await navigator.share({title:"اختبر عينك كمدرب",text:shareText()});}catch(e){}}
+ else{await navigator.clipboard?.writeText(shareText());alert("تم نسخ النتيجة. يمكنك لصقها ومشاركتها.");}
+}
+function shareWhatsApp(){location.href="https://wa.me/?text="+encodeURIComponent(shareText());}
+function restart(){document.getElementById("result").classList.add("hidden");document.getElementById("start").classList.remove("hidden");}
+</script>
+</body>
+</html>
